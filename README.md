@@ -2,7 +2,7 @@
 
 面向中国大学英语学习者的自然表达训练课程项目。React / TypeScript / Vite / Express / Zod 教学应用，保留 MockProvider、OpenAIProvider 与教学状态机，增加零 API 余额可用的独立 OllamaProvider。
 
-**当前可以准备公开Mock演示，但尚未公开部署。本阶段未获收费测试授权，在线质量验收待执行，模型调用0次，未取得真实usage和账单。** Codex版与Coze版是独立对照项目，不把本应用改成Coze前端。
+**公开Mock演示已上线并通过桌面/移动端验收：[打开EnglishMind AI](https://englishmind-ai-mock.onrender.com)。本阶段未获收费测试授权，在线质量验收待执行，模型调用0次，未取得真实usage和账单。** Codex版与Coze版是独立对照项目，不把本应用改成Coze前端。
 
 
 ## 界面预览
@@ -107,10 +107,10 @@ npm run test:production    # 先构建；本地临时HTTPS，非公开部署
 
 新增核心文件：server/security.ts（浏览器归属／门槛／限速）、shared/quality.ts（分项）、server/summary.ts（真实总结校验）、server/telemetry.ts（usage估价）、quality/cases.ts与runner.ts、scripts/quality-check.ts。原Provider、状态机、UI及测试均保留并扩展。
 
-仍待完成：Windows Ollama真实推理与A–H人工复核，或未来有余额及授权后的OpenAI测试、实际托管访问验收、真实手机／Safari及屏幕阅读器；文本防泄露和提示词注入保护不是语义证明。没有长期教育效果数据，不能宣称模型已提高掌握程度。
+仍待完成：Windows Ollama真实推理与A–H人工复核，或未来有余额及授权后的OpenAI测试、Render休眠唤醒/平台重启观察、真实手机／Safari及屏幕阅读器；文本防泄露和提示词注入保护不是语义证明。没有长期教育效果数据，不能宣称模型已提高掌握程度。
 
 ## 归档与发布状态
 
 版本历史见 [CHANGELOG](CHANGELOG.md)。`npm run archive` 从干净本地 Git 检查点导出 ZIP、SHA-256 及清单，排除依赖、真实配置和临时报告。ZIP 不含 Git 历史；可另做本地 Git bundle。
 
-作者已创建并授权公开GitHub仓库；代码许可证尚未选择。Render 配置已准备，仍需作者连接账号、发布并核验实际 URL。具体步骤及 v1.0 关卡见 [归档发布说明](docs/archive-release.md)。本阶段没有收费请求或公开网站部署；GitHub源码与历史已推送，v1.0.0 Draft Release已创建但未正式发布，状态见验收报告。
+作者已创建并授权公开GitHub仓库；代码许可证尚未选择。作者已完成Render部署，实际HTTPS网址及桌面/移动教学闭环已验证。免费计划与账号账单需作者在Render控制台确认。具体步骤及 v1.0 关卡见 [归档发布说明](docs/archive-release.md)。公开网站仅为Mock，没有收费模型请求；GitHub源码与历史已推送，v1.0.0 Draft Release已创建但未正式发布，状态见验收报告。

@@ -75,3 +75,7 @@ gh release create v1.0.0 --repo <真实owner/repository> --draft --target main -
 作者完成仓库创建与授权后，现已成功推送main及原历史标签，并创建实际v1.0.0 Draft Release；附件上传被GitHub上传端点401拒绝；ZIP、校验文件及清单已本地生成并验证，需要作者登录草稿页手动上传。该草稿仅授权账号可见，尚未正式发布。完成公开部署/本地验收后再修订正文和决定正式发布；开发源码保持v0.5.0，不凭空把测试版本标为已验收v1.0.0。
 
 附件手工操作：从本地exports下载ZIP、.sha256和.manifest.json，登录GitHub仓库Releases页打开v1.0.0 Draft，在附件区选择三个文件并保存Draft。不要先点击Publish release；公开网站和模型验收仍未完成。
+
+## Render后续完成记录
+
+作者已提供实际网址 https://englishmind-ai-mock.onrender.com ，HTTPS、安全Cookie及桌面/移动完整Mock教学闭环已实测通过。前述“尚未部署”文字是当时的操作记录；当前部署验收见verification-v0.5.0.md。仍待作者Windows实机模型验收、Render控制台费用/计划核对和平台休眠观察。

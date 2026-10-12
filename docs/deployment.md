@@ -46,3 +46,7 @@ v0.3.0本地检查点为dd3aa36。需要回看时使用 `git show v0.3.0:server/
 ## v0.5本地模型边界
 
 OllamaProvider仅支持开发环境本机回环地址，生产配置拒绝启用。Render Free没有本方案需要的笔记本GPU，也不能通过localhost访问作者电脑。公开演示继续Mock；Windows本地AI按[本地指南](ollama-windows.md)执行，不需要OpenAI余额。
+
+## 实际部署验收（2026-10-12）
+
+作者提供的公开演示为 https://englishmind-ai-mock.onrender.com 。health/ready和真实Chromium桌面/移动三组教学闭环已通过，Mock模式且paidEnabled=false；Cookie、安全响应头及档案清空刷新正常。控制台计划/账单无法从公共HTTP确认，请作者保持Free单实例；平台休眠唤醒与重启尚未实测。

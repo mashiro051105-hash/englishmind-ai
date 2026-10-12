@@ -29,10 +29,10 @@ Ollama新增测试用模拟fetch及真实本机HTTP模拟端点，不依赖安�
 
 GitHub账号经真实CLI验证；最初创建仓库被集成权限拒绝。作者自行创建并授权后，实际API确认公开空仓库 `https://github.com/mashiro051105-hash/englishmind-ai` 可访问，push权限有效。main及v0.3/v0.4历史标签已实际推送，GitHub API核验main提交一致。v1.0.0 Draft Release已实际创建： https://github.com/mashiro051105-hash/englishmind-ai/releases 。Draft仅账号有权限者可见，不是正式公开Release；源码仍v0.5.0。
 
-Render没有已配置API权限/账号连接，本阶段未创建服务，无公开网站URL。render.yaml保持Free、单实例、Mock、收费入口关闭，前后端同源通信在本地生产HTTPS实测通过，不代表Render已成功上线。
+作者完成部署并提供真实网址：https://englishmind-ai-mock.onrender.com 。实际health/ready均200，stage5、provider=mock、paidEnabled=false。真实Chromium1440px/390px各三组完整教学闭环、刷新恢复、首次/提示后/重试后计数、档案清空后刷新为空、无横向溢出与控制台无错误全部通过。bootstrap Cookie为Secure/HttpOnly/SameSite=Strict，API no-store且生产CSP存在，未知API为404；/.env和/.git/config返回与首页完全相同的SPA HTML，不返回敏感文件。没有模型调用。公开端无法核验Render账单、实际计划/实例数量，配置文件仍为Free单实例Mock；控制台配置需作者确认。未模拟平台重启或等待15分钟休眠，不能声称这两项已在Render实测。
 
 截图位于docs/screenshots，取自上述Mock Chromium反馈界面。ZIP从本地干净提交导出，SHA-256和清单随附；不含Git历史，另存Git bundle保留历史。实际ZIP CRC及SHA-256校验通过，包含源码与截图，排除运行和敏感路径。Git bundle验证通过并包含完整历史。Release附件上传实际被uploads.github.com以401 Bad credentials拒绝；API/推送权限仍有效，草稿assets为空。ZIP及校验文件留在本地exports供作者手动上传。
 
 ## 尚待验收
 
-作者Windows实机Ollama安装、4B模型下载、预热与A–H人工复核；Render账号连接/免费发布后真实HTTPS及休眠重启验收。正式v1.0目前只准备Draft材料，不声称正式发布或真实AI合格。单实例内存会话重启丢失，浏览器档案保留；文本安全检查不提供完整语义或长期教学效果保证。
+作者Windows实机Ollama安装、4B模型下载、预热与A–H人工复核；Render平台休眠唤醒与重启观察、控制台Free计划及账单确认。正式v1.0目前只准备Draft材料，不声称正式发布或真实AI合格。单实例内存会话重启丢失，浏览器档案保留；文本安全检查不提供完整语义或长期教学效果保证。
