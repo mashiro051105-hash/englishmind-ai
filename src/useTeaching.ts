@@ -41,6 +41,7 @@ export function useTeaching(onRecord:(record:PracticeRecord)=>void,onRestore:(mo
  }
  async function unlock(code:string){try{const response=await fetch('/api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});const data=await response.json();if(!response.ok)throw new Error(data.error||'访问码无效。');setAccess(a=>a?{...a,authorized:true}:a);setError('');return true;}catch(e){setError(e instanceof Error?e.message:'解锁失败。');return false;}}
  async function cancel(){if(!pending||!current.current)return;try{const response=await fetch(`/api/training/${current.current.id}/cancel`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:pending.body.requestId})});const data=await response.json();if(!response.ok||!data.cancelled)setNotice('当前操作已完成或尚未进入处理，取消未生效，请等待后同步。');}catch{setError('取消请求未送达；请等待超时后同步状态。');}}
+ function forgetCompleted(){if(current.current?.phase!=='completed')return;current.current=null;setSession(null);setResumeId(null);setPending(null);try{localStorage.removeItem(ACTIVE_KEY);}catch{setNotice('浏览器拒绝移除已结束会话标识，刷新后记录可能恢复。');}}
  function dismissNotice(){setNotice('');}
- return {session,access,unlock,cancel,recoverable:!!resumeId&&!session,busy,error,notice,pending,start,command,sync,reset,dismissNotice,retryPending:()=>pending?send(pending):Promise.resolve(false)};
+ return {forgetCompleted,session,access,unlock,cancel,recoverable:!!resumeId&&!session,busy,error,notice,pending,start,command,sync,reset,dismissNotice,retryPending:()=>pending?send(pending):Promise.resolve(false)};
 }

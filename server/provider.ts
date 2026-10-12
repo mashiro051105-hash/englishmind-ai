@@ -12,7 +12,7 @@ export type DiagnosticResult={diagnosis:Diagnosis,target:TeachingTarget|null};
 export interface CallContext{signal:AbortSignal;consume:()=>void;}
 export interface GenerationInput{target:TeachingTarget;kind:Task['kind'];difficulty:Task['difficulty'];index:number;scenario:'campus'|'work';previousPrompts:string[];sourceText:string;}
 export interface TeachingProvider {
- id?:'mock'|'openai';
+ id?:'mock'|'openai'|'ollama';
  diagnose(text:string,scenario:'campus'|'work',ctx?:CallContext,intent?:string):DiagnosticResult|Promise<DiagnosticResult>;
  evaluate(text:string,task:TaskSpec,ctx?:CallContext):Evaluation|Promise<Evaluation>;
  generateTask?(input:GenerationInput,ctx:CallContext):Promise<TaskSpec>;

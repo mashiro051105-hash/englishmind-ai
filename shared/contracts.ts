@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DimensionsSchema } from './quality.js';
-export const ProviderSchema=z.enum(['mock','openai']);
+export const ProviderSchema=z.enum(['mock','openai','ollama']);
 export const ModeSchema = z.enum(['conversation', 'diagnosis', 'transfer']);
 export type Mode = z.infer<typeof ModeSchema>;
 export const ScenarioSchema = z.enum(['campus','work']);

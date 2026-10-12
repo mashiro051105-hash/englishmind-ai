@@ -44,8 +44,8 @@ export async function runQuality(provider:TeachingProvider,ctx:CallContext){
     if(!history||!provider.summarize)throw new ProviderError(502,'setup','无可总结的本次历史；H未执行。');data=verifiedSummary(await provider.summarize(history,ctx),history);checks={factsGrounded:true};data={summary:data,actualFacts:summaryFacts(history)};
    }
    results.push({id:item.id,status:Object.values(checks).every(Boolean)?'needs_review':'fail',checks,data,humanReview:'必须人工核对解释、意义及教学合理性；自动检查不代表教学质量通过。'});
-  }catch(e){const error=e instanceof ProviderError?e:new ProviderError(502,'unexpected','评价失败');results.push({id:item.id,status:ctx.signal.aborted?'cancelled':['quality_budget','setup'].includes(error.code)?'not_run':'fail',checks:{},errorCode:error.code,humanReview:'模型调用或质量保护失败，需人工检查；未自动重试。'});if(error.code==='quality_budget')break;}
+  }catch(e){const error=e instanceof ProviderError?e:new ProviderError(502,'unexpected','评价失败');results.push({id:item.id,status:ctx.signal.aborted?'cancelled':['quality_budget','setup'].includes(error.code)?'not_run':'fail',checks:{},errorCode:error.code,humanReview:'模型调用或质量保护失败，需人工检查；未自动重试。'});if(error.code!=='setup')break;}
  }
- for(const item of qualityCases)if(!results.some(r=>r.id===item.id))results.push({id:item.id,status:'not_run',checks:{},humanReview:'预算已达或前序条件未满足，未执行。'});
+ for(const item of qualityCases)if(!results.some(r=>r.id===item.id))results.push({id:item.id,status:'not_run',checks:{},humanReview:'预算已达、请求失败或前序条件未满足，未执行。'});
  return results;
 }

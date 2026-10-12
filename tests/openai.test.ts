@@ -66,3 +66,11 @@ test('矛盾分类与虚构检索证据被拒绝，遥测不含输入/密钥且�
 test('在线工具硬预算和取消在发请求前阻断SDK，不会自动增加请求',async()=>{
  const {budgetContext}=await import('../quality/runner.js');const controller=new AbortController();const budget=budgetContext(1,controller.signal);const {provider,requests}=adapter({assessment:'assessed',issues:[noIssue],goal:null});await provider.diagnose('one','campus',budget.context);await assert.rejects(()=>provider.diagnose('two','campus',budget.context));assert.equal(requests.length,1);controller.abort();await assert.rejects(()=>provider.diagnose('three','campus',budget.context));assert.equal(requests.length,1);
 });
+test('模型权限预检保留脱敏错误分类，不发生成请求且不自动重试',async()=>{
+ for(const [status,code] of [[401,'authentication'],[403,'permission'],[404,'model_not_found'],[429,'rate_limit'],[500,'upstream']] as const){
+  let calls=0;const client=new OpenAI({apiKey:'test-only',maxRetries:0,fetch:async()=>{calls++;return new Response(JSON.stringify({error:{message:'private-api-secret-detail'}}),{status,headers:{'Content-Type':'application/json'}});}});
+  const provider=new OpenAIProvider(config,client);
+  await assert.rejects(()=>provider.verifyModelAccess(context()),(e:unknown)=>e instanceof ProviderError&&e.code===code&&e.status===status&&!e.message.includes('private-api-secret-detail'));
+  assert.equal(calls,1);
+ }
+});

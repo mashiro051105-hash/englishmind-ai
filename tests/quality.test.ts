@@ -27,3 +27,10 @@ test('费用估算包含cached token，缺失usage不能伪造零费用',()=>{
 test('总结只能引用实际记录；提示与初练不能伪造首次迁移/长期掌握',async()=>{
  const store=new TeachingStore(mockProvider);let s=await store.start({requestId:randomUUID(),mode:'diagnosis',scenario:'campus'});s=await store.command(s.id,{requestId:randomUUID(),revision:0,type:'submit',text:'I very like English.'});const r=s.record!,facts=summaryFacts(r);assert.equal(facts.transferCount,0);const summary={...facts,statement:'仅本轮诊断，无迁移作答。',evidenceIds:[r.attempts[0].id]};assert.ok(verifiedSummary(summary,r));assert.throws(()=>verifiedSummary({...summary,independentSuccessCount:1},r));assert.throws(()=>verifiedSummary({...summary,statement:'已经掌握'},r));assert.throws(()=>verifiedSummary({...summary,evidenceIds:['fake']},r));
 });
+test('在线评价接口/额度/权限/Schema错误立即停止，后续案例不发请求',async()=>{
+ for(const code of ['rate_limit','authentication','model_configuration','upstream','timeout','invalid_schema','quality_budget']){
+  let calls=0;const p:TeachingProvider={id:'mock',diagnose:()=>{calls++;throw new ProviderError(502,code,'sanitized');},evaluate:()=>{throw Error('must not run');}};
+  const result=await runQuality(p,budgetContext(10,new AbortController().signal).context);
+  assert.equal(calls,1);assert.equal(result.length,8);assert.equal(result[0].errorCode,code);assert.ok(result.slice(1).every(r=>r.status==='not_run'));
+ }
+});

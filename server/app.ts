@@ -11,7 +11,8 @@ import { z, ZodError } from 'zod';
 const ZodRequestId=z.string().uuid();
 export function createApp(provider = 'mock', suppliedStore?:TeachingStore, suppliedProvider?:TeachingProvider, options:SecurityOptions=securityOptions()) {
   const config=suppliedProvider?{name:provider,provider:suppliedProvider,error:null}:configuredProvider({...process.env,AI_PROVIDER:provider});
-  const store=suppliedStore??new TeachingStore(config.provider??undefined);
+  const operationTimeout=provider==='ollama'?125000:35000;
+  const store=suppliedStore??new TeachingStore(config.provider??undefined,undefined,undefined,undefined,{operationTimeoutMs:operationTimeout,maxCallsPerSession:30});
   const adapter=config.provider;
   const security=new ApiSecurity(options);const setupError=security.setupError(provider);
   const app = express();
@@ -19,7 +20,7 @@ export function createApp(provider = 'mock', suppliedStore?:TeachingStore, suppl
   app.use(security.headers.bind(security));
   app.disable('x-powered-by');
   app.use(express.json({limit:'16kb'}));
-  app.get('/api/health', (_req,res) => res.json({provider,ready:!!adapter&&!setupError,stage:4,paidEnabled:!!options.paidEnabled,accessRequired:provider==='openai',notice:setupError??config.error??(provider==='mock'?'有限规则Mock，无外部AI调用。':'独立AI模式已配置；此检查不代表在线请求已验证。')}));
+  app.get('/api/health', (_req,res) => res.json({provider,ready:!!adapter&&!setupError,stage:5,paidEnabled:!!options.paidEnabled,accessRequired:provider==='openai',notice:setupError??config.error??(provider==='mock'?'有限规则Mock，无外部AI调用。':'独立AI模式已配置；此检查不代表在线请求已验证。')}));
   app.get('/api/ready',(_req,res)=>res.status(adapter&&!setupError?200:503).json({ready:!!adapter&&!setupError}));
   app.use('/api', (req,res,next)=>{security.identity(req,res);security.guard(req,res,next);});
   app.get('/api/bootstrap',(_req,res)=>res.json({paidEnabled:!!options.paidEnabled,authorized:!!res.locals.browser.paid,accessRequired:provider==='openai'}));
@@ -33,7 +34,7 @@ export function createApp(provider = 'mock', suppliedStore?:TeachingStore, suppl
     try{
       if(!adapter)return res.status(503).json({error:config.error,code:'configuration'});
       if(provider==='mock')return res.json(ResponseSchema.parse(mockRespond(parsed.data)));
-      const ctx={signal:AbortSignal.timeout(35000),consume:()=>{}};
+      const ctx={signal:AbortSignal.timeout(operationTimeout),consume:()=>{}};
       if(parsed.data.mode==='conversation'){
         if(!adapter?.converse)throw new ProviderError(503,'unsupported','当前Provider不支持对话。');
         const reply=await adapter.converse(parsed.data.text,parsed.data.scenario,ctx);

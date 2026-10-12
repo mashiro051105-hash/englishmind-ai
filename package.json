@@ -1,6 +1,6 @@
 {
   "name": "englishmind-ai",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,7 +17,9 @@
     "quality:plan": "tsx scripts/quality-check.ts",
     "quality:online": "tsx scripts/quality-check.ts",
     "security:check": "tsx scripts/security-check.ts",
-    "test:production": "tsx scripts/production-check.ts"
+    "test:production": "tsx scripts/production-check.ts",
+    "archive": "node scripts/archive.mjs",
+    "quality:local": "tsx scripts/local-quality-check.ts"
   },
   "dependencies": {
     "dotenv": "^17.0.0",

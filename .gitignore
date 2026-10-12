@@ -11,3 +11,7 @@ quality-results/
 *.key
 *.p12
 !.env.*.example
+
+exports/
+.DS_Store
+coverage/

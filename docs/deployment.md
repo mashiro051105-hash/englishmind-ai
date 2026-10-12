@@ -42,3 +42,7 @@
 v0.3.0本地检查点为dd3aa36。需要回看时使用 `git show v0.3.0:server/teaching.ts`，需要运行旧版时新建独立worktree，不直接重置当前修改：`git worktree add ../englishmind-v0.3 v0.3.0`。回滚生产版本会丢失临时会话；浏览器档案不因服务部署被删除。
 
 部署前与维护时重复必要测试，核查依赖公告与价格。更换Cookie密钥使已有浏览器身份失效，提醒用户重新开始；访问码轮换建议重启使已签发的paid Cookie失效。不同浏览器或清除Cookie后不会共享训练会话。
+
+## v0.5本地模型边界
+
+OllamaProvider仅支持开发环境本机回环地址，生产配置拒绝启用。Render Free没有本方案需要的笔记本GPU，也不能通过localhost访问作者电脑。公开演示继续Mock；Windows本地AI按[本地指南](ollama-windows.md)执行，不需要OpenAI余额。
