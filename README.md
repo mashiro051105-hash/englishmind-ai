@@ -113,4 +113,4 @@ npm run test:production    # 先构建；本地临时HTTPS，非公开部署
 
 版本历史见 [CHANGELOG](CHANGELOG.md)。`npm run archive` 从干净本地 Git 检查点导出 ZIP、SHA-256 及清单，排除依赖、真实配置和临时报告。ZIP 不含 Git 历史；可另做本地 Git bundle。
 
-作者已创建并授权公开GitHub仓库；代码许可证尚未选择。Render 配置已准备，仍需作者连接账号、发布并核验实际 URL。具体步骤及 v1.0 关卡见 [归档发布说明](docs/archive-release.md)。本阶段没有收费请求或公开网站部署；GitHub推送及Release状态见验收报告。
+作者已创建并授权公开GitHub仓库；代码许可证尚未选择。Render 配置已准备，仍需作者连接账号、发布并核验实际 URL。具体步骤及 v1.0 关卡见 [归档发布说明](docs/archive-release.md)。本阶段没有收费请求或公开网站部署；GitHub源码与历史已推送，v1.0.0 Draft Release已创建但未正式发布，状态见验收报告。

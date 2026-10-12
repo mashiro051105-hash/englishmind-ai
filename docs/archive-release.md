@@ -72,4 +72,4 @@ v1.0.0发布草稿正文已存 `docs/release-v1.0.0.md`。仓库已存在、推�
 gh release create v1.0.0 --repo <真实owner/repository> --draft --target main --title 'EnglishMind AI v1.0.0 — 演示发布草稿' --notes-file docs/release-v1.0.0.md exports/englishmind-ai-v0.5.0.zip exports/englishmind-ai-v0.5.0.zip.sha256 exports/englishmind-ai-v0.5.0.zip.manifest.json
 ```
 
-本轮没有运行此命令，不能声称Release已存在。完成公开部署/本地验收后再修订正文和决定正式发布；开发源码保持v0.5.0，不凭空把测试版本标为已验收v1.0.0。
+作者完成仓库创建与授权后，现已成功推送main及原历史标签，并创建实际v1.0.0 Draft Release；附件按最终v0.5本地归档上传。该草稿仅授权账号可见，尚未正式发布。完成公开部署/本地验收后再修订正文和决定正式发布；开发源码保持v0.5.0，不凭空把测试版本标为已验收v1.0.0。

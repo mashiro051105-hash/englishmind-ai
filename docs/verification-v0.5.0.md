@@ -27,7 +27,7 @@ Ollama新增测试用模拟fetch及真实本机HTTP模拟端点，不依赖安�
 
 ## 发布状态
 
-GitHub账号经真实CLI验证；最初创建仓库被集成权限拒绝。作者自行创建并授权后，实际API确认公开空仓库 `https://github.com/mashiro051105-hash/englishmind-ai` 可访问，push权限有效。后续推送与Draft Release以实际GitHub检查结果补充，不把计划当成完成。
+GitHub账号经真实CLI验证；最初创建仓库被集成权限拒绝。作者自行创建并授权后，实际API确认公开空仓库 `https://github.com/mashiro051105-hash/englishmind-ai` 可访问，push权限有效。main及v0.3/v0.4历史标签已实际推送，GitHub API核验main提交一致。v1.0.0 Draft Release已实际创建： https://github.com/mashiro051105-hash/englishmind-ai/releases/tag/untagged-d3fc0b015aec2b88286e 。Draft仅账号有权限者可见，不是正式公开Release；源码仍v0.5.0。
 
 Render没有已配置API权限/账号连接，本阶段未创建服务，无公开网站URL。render.yaml保持Free、单实例、Mock、收费入口关闭，前后端同源通信在本地生产HTTPS实测通过，不代表Render已成功上线。
 
