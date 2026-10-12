@@ -23,6 +23,7 @@
     "shared",
     "tests",
     "vite.config.ts",
-    "scripts/**/*.ts"
+    "scripts/**/*.ts",
+    "quality"
   ]
 }

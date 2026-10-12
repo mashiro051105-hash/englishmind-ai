@@ -22,7 +22,7 @@ export function chooseDecision(outcome:Outcome,kind:Task['kind'],attempts:number
 interface Reservation{fingerprint:string;id:string;lastSeen:number;}
 interface Flight{requestId:string;fingerprint:string;promise:Promise<Session>;}
 export class TeachingStore {
- private sessions=new Map<string,Internal>();
+ private sessions=new Map<string,Internal>();private controllers=new Map<string,AbortController>();
  private starts=new Map<string,Reservation>();private startFlights=new Map<string,Promise<Session>>();
  private flights=new Map<string,Flight>();private fingerprints=new Map<string,Map<string,string>>();private callCounts=new Map<string,number>();
  constructor(private provider:TeachingProvider=mockProvider,private now=()=>Date.now(),private ttl=24*60*60*1000,private capacity=500,private limits={operationTimeoutMs:35000,maxCallsPerSession:30}){}
@@ -32,11 +32,13 @@ export class TeachingStore {
  }
  private get(id:string){this.prune();const s=this.sessions.get(id);if(!s)throw new TeachingError(404,'训练会话已失效（服务重启或闲置超过24小时）。已保存记录保留，请重新开始。');s.lastSeen=this.now();return s;}
  private async controlled<T>(id:string,work:(ctx:CallContext)=>Promise<T>):Promise<T>{
-  const controller=new AbortController();let timer:ReturnType<typeof setTimeout>;
-  const timeout=new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new ProviderError(504,'timeout','AI操作超时，状态未修改；可重试同一请求。'));},this.limits.operationTimeoutMs);});
+  const controller=new AbortController();this.controllers.set(id,controller);let timedOut=false;let timer:ReturnType<typeof setTimeout>;
+  const timeout=new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>{timedOut=true;controller.abort();reject(new ProviderError(504,'timeout','AI操作超时，状态未修改；可重试同一请求。'));},this.limits.operationTimeoutMs);});
+  const cancelled=new Promise<never>((_r,reject)=>controller.signal.addEventListener('abort',()=>reject(new ProviderError(timedOut?504:409,timedOut?'timeout':'cancelled',timedOut?'AI操作超时，状态未修改。':'操作已取消，状态未修改；可以同步或重试。')),{once:true}));
   const ctx:CallContext={signal:controller.signal,consume:()=>{if(controller.signal.aborted)throw new ProviderError(504,'timeout','请求已超时。');const n=this.callCounts.get(id)??0;if(n>=this.limits.maxCallsPerSession)throw new ProviderError(429,'session_limit','本轮AI调用次数达到上限，请结束本轮。');this.callCounts.set(id,n+1);}};
-  try{return await Promise.race([work(ctx),timeout]);}finally{clearTimeout(timer!);controller.abort();}
+  try{return await Promise.race([work(ctx),timeout,cancelled]);}finally{clearTimeout(timer!);if(this.controllers.get(id)===controller)this.controllers.delete(id);controller.abort();}
  }
+ cancel(id:string,requestId:string){this.get(id);const flight=this.flights.get(id);if(!flight||flight.requestId!==requestId)return false;this.controllers.get(id)?.abort();return true;}
  view(id:string):Session {return this.project(this.get(id));}
  private project(s:Internal):Session {
   const awaiting=s.phase==='awaiting';
@@ -110,7 +112,7 @@ export class TeachingStore {
    const result=checked.data,copied=s.seenAnswers.includes(normalize(c.text));
    const outcome:Outcome=copied?'copied_answer':result.verdict==='success'?(s.taskHints>0?'hinted_success':s.taskAttempts>0||s.retryOrdinal>0?'retry_success':'first_independent_success'):result.verdict==='partial'?'partial':result.verdict==='failure'?'failure':'unassessed';
    const decision=chooseDecision(outcome,s.task.kind,s.taskAttempts+1);
-   feedback={diagnosis:{...result.diagnosis,nextAction:decision},outcome,decision,reason:copied?'重复了已见作答／参考答案，不认定独立检索成功。请结合新情境重新表达。':result.reason};
+   feedback={diagnosis:{...result.diagnosis,nextAction:decision},outcome,decision,dimensions:result.dimensions,reason:copied?'重复了已见作答／参考答案，不认定独立检索成功。请结合新情境重新表达。':result.reason};
   }
   feedback.diagnosis.original=c.text;feedback.diagnosis.nextAction=feedback.decision;s.feedback=feedback;s.phase='feedback';s.taskAttempts++;
   s.record.target=s.target?goalFor(s.target).chunk:null;s.record.diagnosisTypes=Array.from(new Set([...s.record.diagnosisTypes,...feedback.diagnosis.issues.map(i=>i.category)]));

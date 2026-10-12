@@ -1,0 +1,30 @@
+# Prepared only. No service has been created. Public demo uses Mock and no API credential.
+services:
+  - type: web
+    name: englishmind-ai-mock
+    runtime: node
+    plan: free
+    numInstances: 1
+    autoDeploy: false
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: AI_PROVIDER
+        value: mock
+      - key: ENABLE_PAID_AI
+        value: "0"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: SESSION_COOKIE_SECRET
+        generateValue: true
+      - key: APP_INSTANCES
+        value: "1"
+      - key: API_RATE_LIMIT
+        value: "120"
+      - key: API_OWNER_LIMIT
+        value: "100"

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DimensionsSchema } from './quality.js';
 export const ProviderSchema=z.enum(['mock','openai']);
 export const ModeSchema = z.enum(['conversation', 'diagnosis', 'transfer']);
 export type Mode = z.infer<typeof ModeSchema>;
@@ -13,7 +14,7 @@ export const ResponseSchema = z.object({provider:ProviderSchema,reply:z.string()
 export type TrainingResponse = z.infer<typeof ResponseSchema>;
 export const OutcomeSchema = z.enum(['first_independent_success','hinted_success','retry_success','partial','failure','unassessed','copied_answer']);
 export type Outcome = z.infer<typeof OutcomeSchema>;
-export const FeedbackSchema = z.object({diagnosis:DiagnosisSchema,outcome:OutcomeSchema.nullable(),reason:z.string(),decision:ActionSchema});
+export const FeedbackSchema = z.object({diagnosis:DiagnosisSchema,outcome:OutcomeSchema.nullable(),reason:z.string(),dimensions:DimensionsSchema.optional(),decision:ActionSchema});
 export type Feedback = z.infer<typeof FeedbackSchema>;
 export const TaskSchema = z.object({id:z.string(),kind:z.enum(['diagnosis','initial','practice','transfer']),prompt:z.string(),difficulty:z.enum(['normal','easy','challenge'])});
 export type Task = z.infer<typeof TaskSchema>;

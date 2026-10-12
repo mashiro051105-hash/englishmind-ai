@@ -1,3 +1,4 @@
+import { browserFetch } from './http-client.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -8,6 +9,7 @@ import { TeachingStore } from '../server/teaching.js';
 import { mockProvider } from '../server/mock.js';
 
 test('真实HTTP教学闭环、并发重复提交、GET刷新、过期版本及重置',async()=>{
+ const fetch=browserFetch();
  const server=createApp().listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/training`;
  const post=(url:string,body:unknown)=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  const read=async(r:Response)=>{assert.equal(r.status,200);return SessionSchema.parse(await r.json());};
@@ -29,7 +31,8 @@ test('真实HTTP教学闭环、并发重复提交、GET刷新、过期版本及�
  }finally{await new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
 });
 test('无效provider结构返回502且不修改会话，便于第三阶段复用',async()=>{
+ const fetch=browserFetch();
  const provider={...mockProvider,diagnose:()=>({...mockProvider.diagnose('I very like English.','campus'),diagnosis:{original:'invalid'}})};
  const store=new TeachingStore(provider as unknown as typeof mockProvider);const server=createApp('mock',store).listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/training`;
- try{const s=await store.start({requestId:randomUUID(),mode:'diagnosis',scenario:'campus'});const result=await fetch(`${base}/${s.id}/commands`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:randomUUID(),revision:0,type:'submit',text:'hello'})});assert.equal(result.status,502);assert.deepEqual(store.view(s.id),s);}finally{await new Promise<void>(resolve=>server.close(()=>resolve()));}
+ try{const s=SessionSchema.parse(await(await fetch(base,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:randomUUID(),mode:'diagnosis',scenario:'campus'})})).json());const result=await fetch(`${base}/${s.id}/commands`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:randomUUID(),revision:0,type:'submit',text:'hello'})});assert.equal(result.status,502);assert.deepEqual(store.view(s.id),s);}finally{await new Promise<void>(resolve=>server.close(()=>resolve()));}
 });

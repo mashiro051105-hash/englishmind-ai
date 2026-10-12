@@ -6,3 +6,8 @@ dist/
 *.log
 
 .artifacts/
+quality-results/
+*.pem
+*.key
+*.p12
+!.env.*.example

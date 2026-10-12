@@ -7,7 +7,7 @@ export default function TrainingPanel({mode,teaching}:{mode:'diagnosis'|'transfe
  const [scenario,setScenario]=useState<'campus'|'work'>('campus'),[focus,setFocus]=useState<'intensity'|'knowledge'|'request'>('request'),[text,setText]=useState('');
  const [intent,setIntent]=useState('');
  const {session,busy,error,pending}=teaching;
- const blocked=busy||!!pending;
+ const blocked=busy||!!pending||!!(teaching.access?.accessRequired&&(!teaching.access.paidEnabled||!teaching.access.authorized));
  async function submit(e:React.FormEvent){e.preventDefault();if(!text.trim()||blocked)return;if(await teaching.command({type:'submit',text}))setText('');}
  const phaseLabels={awaiting:'独立作答',feedback:'提交后的反馈',completed:'本轮已结束'};
  return <><div className="work-grid"><section className="card practice"><div className="card-heading"><h2>{session?phaseLabels[session.phase]:mode==='diagnosis'?'开始表达诊断':'开始情境训练'}</h2>{session&&<span className="step">{session.task.kind==='transfer'?'迁移检验':session.task.kind==='practice'?'针对性训练':session.task.kind==='initial'?'情境训练':'诊断'}</span>}</div>
@@ -16,6 +16,7 @@ export default function TrainingPanel({mode,teaching}:{mode:'diagnosis'|'transfe
  {session.phase==='feedback'&&<div className="next-action"><strong>建议下一步：{actionLabels[session.feedback!.decision]}</strong><p>决策依据见右侧本次反馈；可选择结束本轮。</p></div>}
  {session.phase==='completed'&&<p className="privacy">本轮实际结果已保存。结束训练不等于迁移成功；可重新开始新的情境。</p>}
  <div className="training-actions">{session.phase!=='completed'&&session.allowedActions.map(action=><button className={action===session.feedback?.decision?'primary':'secondary'} disabled={blocked} key={action} onClick={async()=>{if(await teaching.command({type:'action',action}))setText('');}}>{actionLabels[action]}</button>)}<button className="text-button" disabled={blocked} onClick={async()=>{if(session.phase==='completed'){await teaching.start(mode,scenario,focus,intent);setText('');}else if(await teaching.reset())setText('');}}>{session.phase==='completed'?'开始新的一轮':'重置本轮（保存为已停止）'}</button></div><button className="text-button" disabled={busy} onClick={()=>void teaching.sync()}>恢复／同步服务端状态</button></>}
+ {busy&&pending&&session&&<button className="secondary" onClick={()=>void teaching.cancel()}>取消当前请求</button>}
  {error&&<p className="error" role="alert">{error}</p>}{pending&&!busy&&<div className="task"><p>上次请求结果不确定，请重试同一请求或同步状态。</p><button className="secondary" disabled={busy} onClick={()=>void teaching.retryPending()}>重试刚才请求（不重复计数）</button></div>}</section>
  <section className="card feedback" aria-live="polite"><div className="card-heading"><h2>{session?.phase==='awaiting'?'先表达，再反馈':'本次反馈'}</h2><span className="step">{session?.provider==='openai'?'AI / REFLECT':'MOCK / REFLECT'}</span></div>{session?.hint&&session.phase==='awaiting'&&<div className="task"><span>你主动请求的提示 · 本题不再计首次无提示成功</span><p>{session.hint}</p></div>}{session?.feedback&&session.phase!=='awaiting'?<FeedbackView feedback={session.feedback} provider={session.provider}/>:<div className="empty"><span className="empty-icon">✧</span><h3>给自己一次独立表达的机会</h3><p>作答前不展示参考答案或目标词块。<br/>点击请求提示会如实记录。</p></div>}</section></div></>;
 }

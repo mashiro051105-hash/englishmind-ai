@@ -9,3 +9,7 @@ export async function trainingRequest(path:string,body?:unknown):Promise<Session
  }catch(e){if(e instanceof Error&&e.name==='AbortError')throw new Error('请求超时；请同步状态或重试同一请求，避免重复计数。');throw e;}finally{clearTimeout(timer);}
 }
 export type PendingCommand={path:string,body:Command|{requestId:string,mode:'diagnosis'|'transfer',scenario:'campus'|'work',focus:'intensity'|'knowledge'|'request',intent?:string}};
+
+export interface BrowserAccess{paidEnabled:boolean;authorized:boolean;accessRequired:boolean;}
+let bootstrap:Promise<BrowserAccess>|null=null;
+export function ensureBrowser(){if(!bootstrap)bootstrap=fetch('/api/bootstrap',{signal:AbortSignal.timeout(10000)}).then(async r=>{if(!r.ok)throw new Error('无法建立浏览器会话，请稍后刷新。');return await r.json() as BrowserAccess;}).catch(e=>{bootstrap=null;throw e;});return bootstrap;}

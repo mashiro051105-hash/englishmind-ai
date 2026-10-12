@@ -20,7 +20,7 @@ test('官方SDK请求使用环境模型、严格Schema、store=false与输出额
  const r=requests[0];assert.equal(r.model,'fixture-model');assert.equal(r.store,false);assert.equal(r.max_output_tokens,1800);assert.equal((r.text as {format:{strict:boolean}}).format.strict,true);assert.match(r.input as string,/礼貌请求帮助/);
 });
 test('合理等效表达可得到语义成功，不依据参考字符串',async()=>{
- const {provider}=adapter({verdict:'success',meaningCorrect:true,naturalAndAppropriate:true,targetOrEquivalentUsed:true,reason:'意图和对象相符，等效礼貌框架正确',assessment:'assessed',issues:[noIssue]});const task=taskFor('request',1,'transfer');
+ const {provider}=adapter({verdict:'success',dimensions:{languageAccuracy:'correct',naturalness:'natural',taskCompletion:'complete',targetRetrieval:'equivalent',evidence:[noIssue.natural]},meaningCorrect:true,naturalAndAppropriate:true,targetOrEquivalentUsed:true,reason:'意图和对象相符，等效礼貌框架正确',assessment:'assessed',issues:[noIssue]});const task=taskFor('request',1,'transfer');
  assert.notEqual(noIssue.natural,task.reference);const result=await provider.evaluate(noIssue.natural,task,context());assert.equal(result.verdict,'success');
 });
 test('动态任务私有参考不公开、中文任务无答案；泄露英语或相同情境被拒绝',async()=>{
@@ -31,7 +31,7 @@ test('动态任务私有参考不公开、中文任务无答案；泄露英语�
 });
 test('异常JSON、Schema、额外伪造历史、矛盾成功、不完整和拒绝输出均失败',async()=>{
  for(const data of ['{bad',{assessment:'assessed',issues:[],goal:null},{assessment:'assessed',issues:[noIssue],goal},{assessment:'assessed',issues:[noIssue],goal:null,mastered:true}])await assert.rejects(()=>adapter(data).provider.diagnose('English text','campus',context()),ProviderError);
- await assert.rejects(()=>adapter({verdict:'success',meaningCorrect:false,naturalAndAppropriate:true,targetOrEquivalentUsed:true,reason:'fake',assessment:'assessed',issues:[noIssue]}).provider.evaluate('x',taskFor('request',1,'transfer'),context()),ProviderError);
+ await assert.rejects(()=>adapter({verdict:'success',dimensions:{languageAccuracy:'correct',naturalness:'natural',taskCompletion:'complete',targetRetrieval:'equivalent',evidence:[noIssue.natural]},meaningCorrect:false,naturalAndAppropriate:true,targetOrEquivalentUsed:true,reason:'fake',assessment:'assessed',issues:[noIssue]}).provider.evaluate('x',taskFor('request',1,'transfer'),context()),ProviderError);
  await assert.rejects(()=>adapter({...output({}),status:'incomplete'},{envelope:true}).provider.diagnose('x','campus',context()),ProviderError);
  await assert.rejects(()=>adapter({...output({}),output:[{type:'message',content:[{type:'refusal',refusal:'cannot'}]}]},{envelope:true}).provider.diagnose('x','campus',context()),ProviderError);
 });
@@ -51,4 +51,18 @@ test('迁移情境仅更换一个名词、矛盾诊断目标、过长输出被�
  await assert.rejects(()=>adapter({prompt:source.replace('天文学','物理学'),meaning:'增加物理知识',reference:'I want to learn about physics.',hint:'使用学习主题搭配。',contextId:'同学交流'}).provider.generateTask(input,context()),ProviderError);
  await assert.rejects(()=>adapter({assessment:'assessed',issues:[{category:'collocation',explanation:'x',natural:'I gain knowledge.',chunks:['gain knowledge']}],goal:{...goal,chunk:'make a decision'}}).provider.diagnose('x','campus',context()),ProviderError);
  await assert.rejects(()=>adapter('x'.repeat(16001)).provider.diagnose('x','campus',context()),ProviderError);
+});
+test('自然visit与旅行信息错位不制造语法错，分别保留任务和目标证据',async()=>{
+ for(const [text,complete,used] of [["I'm planning to visit Xi'an this summer.",true,false],["I'm going on a trip to Hangzhou next winter.",false,true]] as const){
+  const {provider}=adapter({verdict:complete?'partial':'failure',dimensions:{languageAccuracy:'correct',naturalness:'natural',taskCompletion:complete?'complete':'incorrect',targetRetrieval:used?'used':'not_used',evidence:[text]},meaningCorrect:complete,naturalAndAppropriate:true,targetOrEquivalentUsed:used,reason:'语言正确，任务信息与词块分别检查',assessment:'assessed',issues:[{...noIssue,natural:text}]});
+  const result=await provider.evaluate(text,{...taskFor('request',1,'transfer'),goal:{chunk:'go on a trip',meaning:'今年夏天去西安旅行',equivalents:['take a trip']}},context());assert.equal(result.diagnosis.issues[0].category,'no_issue');assert.notEqual(result.verdict,'success');assert.equal(result.dimensions?.languageAccuracy,'correct');
+ }
+});
+test('矛盾分类与虚构检索证据被拒绝，遥测不含输入/密钥且记录真实usage估算',async()=>{
+ const text='I went on a trip.';
+ for(const issues of [[{...noIssue,category:'grammar',natural:text}],[{...noIssue,natural:text}]]){const {provider}=adapter({verdict:'success',dimensions:{languageAccuracy:'correct',naturalness:'natural',taskCompletion:'complete',targetRetrieval:'used',evidence:['invented quotation']},meaningCorrect:true,naturalAndAppropriate:true,targetOrEquivalentUsed:true,reason:'x',assessment:'assessed',issues});await assert.rejects(()=>provider.evaluate(text,taskFor('request',1,'transfer'),context()),ProviderError);}
+ const events:unknown[]=[];const raw={...output({assessment:'assessed',issues:[noIssue],goal:null}),usage:{input_tokens:1000,input_tokens_details:{cached_tokens:500},output_tokens:200}};const {provider}=adapter(raw,{envelope:true,config:{rates:{input:2,cachedInput:0.1,output:10},onTelemetry:e=>events.push(e)}});await provider.diagnose('sensitive-student-input','campus',context());const serialized=JSON.stringify(events);assert.doesNotMatch(serialized,/sensitive-student-input|test-placeholder-only|apiKey/);assert.match(serialized,/0.00305/);assert.match(serialized,/inputTokens/);
+});
+test('在线工具硬预算和取消在发请求前阻断SDK，不会自动增加请求',async()=>{
+ const {budgetContext}=await import('../quality/runner.js');const controller=new AbortController();const budget=budgetContext(1,controller.signal);const {provider,requests}=adapter({assessment:'assessed',issues:[noIssue],goal:null});await provider.diagnose('one','campus',budget.context);await assert.rejects(()=>provider.diagnose('two','campus',budget.context));assert.equal(requests.length,1);controller.abort();await assert.rejects(()=>provider.diagnose('three','campus',budget.context));assert.equal(requests.length,1);
 });

@@ -35,3 +35,6 @@ test('开始动态任务幂等、调用预算计入失败，超额仍可停止�
  await assert.rejects(()=>store.command(a.id,{requestId:randomUUID(),revision:0,type:'submit',text:'I really like photography.'}),(e:unknown)=>e instanceof ProviderError&&e.status===429);assert.equal(store.view(a.id).revision,0);
  const stopped=await store.command(a.id,{requestId:randomUUID(),revision:0,type:'reset'});assert.deepEqual(stopped.record?.transferResults,[]);
 });
+test('显式取消在途调用，迟到响应无效且可以同键安全重试',async()=>{
+ const held=deferred<ReturnType<typeof mockProvider.diagnose>>();let calls=0;const p:TeachingProvider={...mockProvider,diagnose:async()=>++calls===1?held.promise:mockProvider.diagnose('I very like English.','campus')};const store=new TeachingStore(p);const s=await store.start(startBody());const body={requestId:randomUUID(),revision:0,type:'submit',text:'I very like English.'};const request=store.command(s.id,body);assert.equal(store.cancel(s.id,'wrong'),false);assert.equal(store.cancel(s.id,body.requestId),true);await assert.rejects(()=>request);assert.equal(store.view(s.id).revision,0);const result=await store.command(s.id,body);held.resolve(mockProvider.diagnose(body.text,'campus'));await new Promise(r=>setTimeout(r,5));assert.equal(store.view(s.id).revision,1);assert.equal(result.record?.attempts.length,1);
+});

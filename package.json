@@ -1,6 +1,6 @@
 {
   "name": "englishmind-ai",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,11 @@
     "start": "tsx server/index.ts",
     "test:browser": "node scripts/browser-check.mjs",
     "test:restart": "node scripts/browser-restart-check.mjs",
-    "test:live": "tsx scripts/live-ai-check.ts"
+    "test:live": "tsx scripts/live-ai-check.ts",
+    "quality:plan": "tsx scripts/quality-check.ts",
+    "quality:online": "tsx scripts/quality-check.ts",
+    "security:check": "tsx scripts/security-check.ts",
+    "test:production": "tsx scripts/production-check.ts"
   },
   "dependencies": {
     "dotenv": "^17.0.0",

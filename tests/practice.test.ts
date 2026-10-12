@@ -1,3 +1,4 @@
+import { browserFetch } from './http-client.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -17,10 +18,11 @@ test('无效输入和伪造响应被契约拒绝；反馈最多三个问题',()=
  assert.equal(DiagnosisSchema.safeParse({...diagnosis,issues:[...diagnosis.issues,diagnosis.issues[0]]}).success,false);
 });
 test('HTTP 单轮接口边界：健康、无效请求、JSON错误、大请求、未知API、真实模式拒绝',async()=>{
+ const fetch=browserFetch();
  for(const provider of ['mock','coze']){
   const server=createApp(provider).listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));
   const url=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  try{const health=await(await fetch(`${url}/api/health`)).json();assert.equal(health.ready,provider==='mock');assert.equal(health.stage,3);
+  try{const health=await(await fetch(`${url}/api/health`)).json();assert.equal(health.ready,provider==='mock');assert.equal(health.stage,4);
    const post=(body:string)=>fetch(`${url}/api/practice`,{method:'POST',headers:{'Content-Type':'application/json'},body});
    const valid=await post(JSON.stringify({mode:'diagnosis',text:samples[0].text}));assert.equal(valid.status,provider==='mock'?200:503);if(provider==='mock')assert.ok(ResponseSchema.safeParse(await valid.json()).success);
    assert.equal((await post(JSON.stringify({mode:'diagnosis',text:''}))).status,400);assert.equal((await post('{bad')).status,400);
